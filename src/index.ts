@@ -1,6 +1,6 @@
 import cors from "cors";
 import express from "express";
-import retroSessionRoutes from "./routes/retro-sessions.js";
+import retroSessionRoutes from "./routes/retro-sessions-route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
