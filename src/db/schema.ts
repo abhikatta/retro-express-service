@@ -16,13 +16,13 @@ export const retro_items = pgTable("retro_items", {
   id: uuid("id").primaryKey().defaultRandom().unique().notNull(),
   type: retroItemTypeEnum("type").notNull(),
   description: text("description").notNull(),
-  sessionId: uuid("session_id")
+  session_id: uuid("session_id")
     .references(() => retro_sessions.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
     .notNull(),
-  createdOrLastUpdatedAt: timestamp("created_or_last_updated_at", {
+  created_or_last_updated_at: timestamp("created_or_last_updated_at", {
     mode: "date",
     withTimezone: true,
   })
@@ -31,7 +31,10 @@ export const retro_items = pgTable("retro_items", {
 });
 
 export type RetroItem = typeof retro_items.$inferSelect;
-export type RetroItemCreate = Omit<RetroItem, "id" | "createdOrLastUpdatedAt">;
+export type RetroItemCreate = Omit<
+  RetroItem,
+  "id" | "created_or_last_updated_at"
+>;
 
 export type RetroSession = typeof retro_sessions.$inferSelect;
 export type RetroSessionCreate = Omit<RetroSession, "id">;

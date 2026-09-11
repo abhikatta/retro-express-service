@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import retroSessionRoutes from "./routes/retro-sessions-route.js";
+import retroItemRoutes from "./routes/retro-items-route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -14,6 +15,7 @@ app.use(
 );
 
 app.use("/api/session", retroSessionRoutes);
+app.use("/api/sessions", retroItemRoutes);
 
 app.listen(PORT, () => {
   console.log(`[src/index] Server running on http://localhost:${PORT}`);
