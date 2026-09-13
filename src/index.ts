@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import retroSessionRoutes from "./routes/retro-sessions-route.js";
 import retroItemRoutes from "./routes/retro-items-route.js";
+import websocketRoutes from "./routes/websocket-route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -10,12 +11,17 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.use(
   cors({
-    origin: process.env.URL || "http://localhost:3000",
+    origin: process.env.URL || "http://localhost:5173",
   }),
 );
 
-app.use("/api/session", retroSessionRoutes);
-app.use("/api/sessions", retroItemRoutes);
+app.use("/session", retroSessionRoutes);
+app.use("/sessions", retroItemRoutes);
+app.use("/get-retro-items", websocketRoutes);
+
+app.get("/", (_, res) => {
+  res.json({ home: "." });
+});
 
 app.listen(PORT, () => {
   console.log(`[src/index] Server running on http://localhost:${PORT}`);

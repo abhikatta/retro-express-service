@@ -19,7 +19,7 @@ retroSessionRouter.get("/", async (_: Request, res: Response) => {
   if (!session) {
     return res.status(404).json({ error: "Session not found" });
   }
-  return res.json({ session });
+  return res.json(session);
 });
 
 retroSessionRouter.get("/:id", async (req: Request, res: Response) => {
@@ -35,7 +35,7 @@ retroSessionRouter.get("/:id", async (req: Request, res: Response) => {
   if (!session) {
     return res.status(404).json({ error: "Session not found" });
   }
-  return res.json({ session });
+  return res.json(session);
 });
 
 retroSessionRouter.post("/", async (req: Request, res: Response) => {
@@ -50,7 +50,7 @@ retroSessionRouter.post("/", async (req: Request, res: Response) => {
     meeting_link,
   });
 
-  return res.json({ session: createdItem });
+  return res.json(createdItem);
 });
 
 retroSessionRouter.patch("/:id", async (req: Request, res: Response) => {
@@ -82,7 +82,7 @@ retroSessionRouter.patch("/:id", async (req: Request, res: Response) => {
   if (!updatedItem) {
     return res.status(404).json({ error: "Session not found" });
   }
-  return res.json({ session: updatedItem });
+  return res.json(updatedItem);
 });
 
 export default retroSessionRouter;

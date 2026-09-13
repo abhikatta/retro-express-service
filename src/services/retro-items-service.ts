@@ -8,10 +8,11 @@ export const getAllRetroItemsFromAllSessions = async () => {
 };
 
 export const getAllRetroItems = async (session_id: RetroItem["session_id"]) => {
-  return await db
+  const items = await db
     .select()
     .from(retro_items)
     .where(eq(retro_items.session_id, session_id));
+  return items || [];
 };
 
 export const createRetroItem = async (data: RetroItemCreate) => {

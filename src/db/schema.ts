@@ -22,7 +22,7 @@ export const retro_items = pgTable("retro_items", {
       onUpdate: "cascade",
     })
     .notNull(),
-  created_or_last_updated_at: timestamp("created_or_last_updated_at", {
+  last_created_or_updated_at: timestamp("last_created_or_updated_at", {
     mode: "date",
     withTimezone: true,
   })
@@ -33,7 +33,7 @@ export const retro_items = pgTable("retro_items", {
 export type RetroItem = typeof retro_items.$inferSelect;
 export type RetroItemCreate = Omit<
   RetroItem,
-  "id" | "created_or_last_updated_at"
+  "id" | "last_created_or_updated_at"
 >;
 
 export type RetroSession = typeof retro_sessions.$inferSelect;

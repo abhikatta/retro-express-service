@@ -21,6 +21,18 @@ retroItemRouter.get("/retro-items", async (_: Request, res: Response) => {
   return res.json({ retro_items });
 });
 
+retroItemRouter.get(
+  "/:sessionId/retro-items",
+  async (req: Request<{ sessionId: string }>, res: Response) => {
+    const { sessionId } = req.params;
+    const session = await getRetroSessionItem(sessionId);
+    if (!session)
+      return res.json(400).json({ error: "Session does not exist" });
+    const retro_items = await getAllRetroItems(sessionId);
+    return res.json(retro_items);
+  },
+);
+
 retroItemRouter.post(
   "/:sessionId/retro-items",
   async (
