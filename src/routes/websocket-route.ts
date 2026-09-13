@@ -7,8 +7,8 @@ websocketRouter.get(
   "/:sessionId",
   async (req: Request<{ sessionId: string }>, res: Response) => {
     const { sessionId } = req.params;
-
     const retroItems = await getAllRetroItems(sessionId);
+
     if (retroItems) return res.json(retroItems);
     else return res.json([]);
   },

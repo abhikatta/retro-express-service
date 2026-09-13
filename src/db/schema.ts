@@ -35,6 +35,10 @@ export type RetroItemCreate = Omit<
   RetroItem,
   "id" | "last_created_or_updated_at"
 >;
+export type RetroItemUpdate = Omit<
+  RetroItem,
+  "id" | "last_created_or_updated_at" | "session_id"
+>;
 
 export type RetroSession = typeof retro_sessions.$inferSelect;
 export type RetroSessionCreate = Omit<RetroSession, "id">;

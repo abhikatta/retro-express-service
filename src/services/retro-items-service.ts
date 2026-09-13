@@ -1,11 +1,11 @@
 import { db } from "@/db/index.js";
-import { retro_items, RetroItem, RetroItemCreate } from "@/db/schema.js";
+import {
+  retro_items,
+  RetroItem,
+  RetroItemCreate,
+  RetroItemUpdate,
+} from "@/db/schema.js";
 import { and, eq } from "drizzle-orm";
-
-// TODO: remove later
-export const getAllRetroItemsFromAllSessions = async () => {
-  return db.select().from(retro_items);
-};
 
 export const getAllRetroItems = async (session_id: RetroItem["session_id"]) => {
   const items = await db
@@ -45,12 +45,8 @@ export const getRetroItem = async (
 export const updateRetroItem = async (
   session_id: RetroItem["session_id"],
   id: RetroItem["id"],
-  data: RetroItemCreate,
+  data: RetroItemUpdate,
 ) => {
-  const retroItem = await getRetroItem(session_id, id);
-
-  if (!retroItem) return null;
-
   const [updatedRetroItem] = await db
     .update(retro_items)
     .set({
@@ -66,10 +62,6 @@ export const deleteRetroItem = async (
   session_id: RetroItem["session_id"],
   id: RetroItem["id"],
 ) => {
-  const retroItem = await getRetroItem(session_id, id);
-
-  if (!retroItem) return null;
-
   const [deletedRetroItem] = await db
     .delete(retro_items)
     .where(and(eq(retro_items.session_id, session_id), eq(retro_items.id, id)))

@@ -1,39 +1,20 @@
 import { RetroItem, RetroSession } from "@/db/schema.js";
-import WebSocket, { WebSocketServer } from "ws";
-
-type WebSocketEvent =
-  | "retro_item_created"
-  | "retro_item_deleted"
-  | "retro_item_updated"
-  | "participants_updated";
+import WebSocket from "ws";
 
 interface ParticipantsEvent {
-  event: Extract<WebSocketEvent, "participants_updated">;
+  event: "participants_updated";
   total_participants: number;
 }
 
 interface RetroItemEvent {
-  event: Exclude<WebSocketEvent, "participants_updated">;
+  event: "retro_item_created" | "retro_item_deleted" | "retro_item_updated";
   retro_item: RetroItem;
 }
 
 type BroadcastEvent = ParticipantsEvent | RetroItemEvent;
 
-const connections = new Map<string, WebSocket[]>();
-const disconnectConnections = new Set<WebSocket>();
-const wss = new WebSocketServer({ port: 8000 });
-
-wss.on("connection", (socket, req) => {
-  console.log(req);
-  const sessionId = req.url || "";
-
-  socket.on("open", () => {
-    addConnection(sessionId, socket);
-  });
-  socket.on("close", () => {
-    removeConnection(sessionId, socket);
-  });
-});
+export const connections = new Map<string, WebSocket[]>();
+export const disconnectConnections = new Set<WebSocket>();
 
 export const addConnection = (
   sesssionId: RetroSession["id"],
@@ -45,11 +26,6 @@ export const addConnection = (
   } else {
     connections.set(sesssionId, [socket]);
   }
-
-  broadCastToConnections(sesssionId, {
-    event: "participants_updated",
-    total_participants: connections.get(sesssionId)?.length || 1,
-  });
 };
 
 export const removeConnection = (
@@ -57,13 +33,13 @@ export const removeConnection = (
   websocket: WebSocket,
 ) => {
   const sessionConnections = connections.get(sessionId);
-  if (!sessionConnections) connections.delete(sessionId);
-  else sessionConnections?.filter((event) => websocket !== event);
-
-  broadCastToConnections(sessionId, {
-    total_participants: sessionConnections?.length || 0,
-    event: "participants_updated",
-  });
+  if (!sessionConnections) return;
+  else {
+    const remainingSessions = sessionConnections?.filter(
+      (event) => websocket !== event,
+    );
+    connections.set(sessionId, remainingSessions);
+  }
 };
 
 export const broadCastToConnections = (

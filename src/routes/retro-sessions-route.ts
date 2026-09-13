@@ -13,15 +13,6 @@ const retroSessionRouter = Router();
 const idSchema = z.uuid();
 const meetingLinkSchema = z.url();
 
-// TODO: remove later
-retroSessionRouter.get("/", async (_: Request, res: Response) => {
-  const session = await db.select().from(retro_sessions);
-  if (!session) {
-    return res.status(404).json({ error: "Session not found" });
-  }
-  return res.json(session);
-});
-
 retroSessionRouter.get("/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
 
