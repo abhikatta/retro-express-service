@@ -1,4 +1,5 @@
 import { RetroItem, RetroItemCreate } from "@/db/schema.js";
+import AIGrouping from "@/services/ai-grouping.js";
 import {
   createRetroItem,
   deleteRetroItem,
@@ -23,7 +24,13 @@ retroItemRouter.get(
     if (!session)
       return res.json(400).json({ error: "Session does not exist" });
     const retro_items = await getAllRetroItems(sessionId);
-    return res.json(retro_items);
+    res.json(retro_items);
+    void AIGrouping(sessionId).then((itemGroups) =>
+      broadCastToConnections(sessionId, {
+        event: "ai_item_groups_updated",
+        itemGroups,
+      }),
+    );
   },
 );
 
@@ -59,7 +66,13 @@ retroItemRouter.post(
       retro_item,
     });
 
-    return res.json(retro_item);
+    res.json(retro_item);
+    void AIGrouping(sessionId).then((itemGroups) =>
+      broadCastToConnections(sessionId, {
+        event: "ai_item_groups_updated",
+        itemGroups,
+      }),
+    );
   },
 );
 
@@ -83,7 +96,14 @@ retroItemRouter.get(
 
     if (!retroItem)
       return res.status(404).json({ error: "Item does not exist" });
-    return res.json(retroItem);
+    res.json(retroItem);
+
+    void AIGrouping(sessionId).then((itemGroups) =>
+      broadCastToConnections(sessionId, {
+        event: "ai_item_groups_updated",
+        itemGroups,
+      }),
+    );
   },
 );
 
@@ -115,7 +135,14 @@ retroItemRouter.patch(
       retro_item: updatedRetroItem,
     });
 
-    return res.json(updatedRetroItem);
+    res.json(updatedRetroItem);
+
+    void AIGrouping(sessionId).then((itemGroups) =>
+      broadCastToConnections(sessionId, {
+        event: "ai_item_groups_updated",
+        itemGroups,
+      }),
+    );
   },
 );
 
@@ -138,7 +165,14 @@ retroItemRouter.delete(
       retro_item: deletedRetroItem,
     });
 
-    return res.json(deletedRetroItem);
+    res.json(deletedRetroItem);
+
+    void AIGrouping(sessionId).then((itemGroups) =>
+      broadCastToConnections(sessionId, {
+        event: "ai_item_groups_updated",
+        itemGroups,
+      }),
+    );
   },
 );
 

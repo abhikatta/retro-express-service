@@ -13,7 +13,7 @@ import {
 } from "@/services/websocket.js";
 
 const app = express();
-export const PORT = parseInt(process.env.PORT || "") || 8000;
+export const PORT = process.env.PORT ?? 8000;
 
 app.use(express.json());
 app.use(express.urlencoded());
@@ -39,7 +39,7 @@ const wss = new WebSocketServer({
   server,
 });
 
-wss.on("connection", (socket, req) => {
+wss.on("connection", async (socket, req) => {
   console.log("Starting WebSocket server...");
   const sessionId = req.url?.split("/").pop();
 
@@ -47,7 +47,6 @@ wss.on("connection", (socket, req) => {
     socket.close();
     return;
   }
-
   addConnection(sessionId, socket);
 
   broadCastToConnections(sessionId, {

@@ -11,7 +11,18 @@ interface RetroItemEvent {
   retro_item: RetroItem;
 }
 
-type BroadcastEvent = ParticipantsEvent | RetroItemEvent;
+export interface AIRetroItemGroupEvent {
+  event: "ai_item_groups_updated";
+  itemGroups: [
+    {
+      summary: string;
+      groupItemsIds: string[];
+    },
+  ];
+}
+
+type BroadcastEvent =
+  ParticipantsEvent | RetroItemEvent | AIRetroItemGroupEvent;
 
 export const connections = new Map<string, WebSocket[]>();
 export const disconnectConnections = new Set<WebSocket>();
