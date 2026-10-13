@@ -1,16 +1,17 @@
 import "@/services/websocket.js";
-import cors from "cors";
-import express from "express";
-import retroItemRoutes from "./routes/retro-items-route.js";
-import retroSessionRoutes from "./routes/retro-sessions-route.js";
-import websocketRoutes from "./routes/websocket-route.js";
-import { WebSocketServer } from "ws";
 import {
   addConnection,
   broadCastToConnections,
   connections,
   removeConnection,
 } from "@/services/websocket.js";
+import cors from "cors";
+import express from "express";
+import { WebSocketServer } from "ws";
+import aiRoutes from "./routes/ai-route.js";
+import retroItemRoutes from "./routes/retro-items-route.js";
+import retroSessionRoutes from "./routes/retro-sessions-route.js";
+import websocketRoutes from "./routes/websocket-route.js";
 
 const app = express();
 export const PORT = process.env.PORT ?? 8000;
@@ -26,6 +27,7 @@ app.use(
 app.use("/session", retroSessionRoutes);
 app.use("/sessions", retroItemRoutes);
 app.use("/get-retro-items", websocketRoutes);
+app.use("/ai", aiRoutes);
 
 app.get("/", (_, res) => {
   res.json({ home: "." });
