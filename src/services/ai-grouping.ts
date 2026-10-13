@@ -6,15 +6,16 @@ import {
   SessionNotFoundError,
   TooFewItemsError,
 } from "@/errors.js";
+import { getRetroSessionItem } from "./retro-sessions-service.js";
 
 const responseType = [
   {
-    summary: "a short 1 line sentence explaning why the items are grouped",
+    summary: "a short 1 line sentence explaining why the items are grouped",
     groupItemsIds: "array of item ids that are grouped based on items provided",
   },
 ];
 
-export const generatePrompt = async (items: string) =>
+export const generatePrompt = (items: string) =>
   `Group the items based on content similarity and give response in the shape of ${JSON.stringify(responseType)} 
   per group for following items. Response must follow the shape provided and if only part of the items are similar the 
   summary should also mention it. Raw JSON only, no markdown fences, no prose. \n\n.ITEMS:\n ${items}`;
@@ -22,19 +23,22 @@ export const generatePrompt = async (items: string) =>
 const AIGrouping = async (
   sessionId: string,
 ): Promise<AIRetroItemGroupEvent["itemGroups"]> => {
+  const session = await getRetroSessionItem(sessionId);
+  if (!session) {
+    throw new SessionNotFoundError("Session not found!");
+  }
+
   const items = (await getAllRetroItems(sessionId)).map((item) => ({
     id: item.id,
     type: item.type,
     description: item.description,
   }));
-  if (!items || !items.length) {
-    throw new SessionNotFoundError("Session not found!");
-  } else if (items.length <= 1) {
+  if (items.length <= 1) {
     throw new TooFewItemsError("Too few Retro items for AI grouping.");
   }
 
   const stringifiedItems = JSON.stringify(items);
-  const text = await promptAI(await generatePrompt(stringifiedItems));
+  const text = await promptAI(generatePrompt(stringifiedItems));
   if (!text) {
     throw new AIServiceError("Something went wrong! Please try again later.");
   }
