@@ -1,12 +1,13 @@
-import { promptAI } from "@/providers/ai-provider.js";
-import { AIRetroItemGroupEvent } from "./websocket.js";
-import { getAllRetroItems } from "./retro-items-service.js";
+import { RetroItem } from "@/db/schema.js";
 import {
   AIServiceError,
   SessionNotFoundError,
   TooFewItemsError,
 } from "@/errors.js";
+import { promptAI } from "@/providers/ai-provider.js";
+import { getAllRetroItems } from "./retro-items-service.js";
 import { getRetroSessionItem } from "./retro-sessions-service.js";
+import { AIRetroItemGroupEvent } from "./websocket.js";
 
 const responseType = [
   {
@@ -20,6 +21,22 @@ export const generatePrompt = (items: string) =>
   per group for following items. Response must follow the shape provided and if only part of the items are similar the 
   summary should also mention it. Raw JSON only, no markdown fences, no prose. \n\n.ITEMS:\n ${items}`;
 
+export const cleanUpAIHallucinatedIds = (
+  AIGroups: AIRetroItemGroupEvent["itemGroups"],
+  retroItems: RetroItem[],
+): AIRetroItemGroupEvent["itemGroups"] => {
+  const retroItemIds = new Set(retroItems.map((item) => item.id));
+
+  const res = AIGroups.map((group) => {
+    const filteredIds = [...new Set(group.groupItemsIds)].filter((i) =>
+      retroItemIds.has(i),
+    );
+    return { ...group, groupItemsIds: filteredIds };
+  });
+
+  return res.filter((item) => item.groupItemsIds.length > 1);
+};
+
 const AIGrouping = async (
   sessionId: string,
 ): Promise<AIRetroItemGroupEvent["itemGroups"]> => {
@@ -27,8 +44,8 @@ const AIGrouping = async (
   if (!session) {
     throw new SessionNotFoundError("Session not found!");
   }
-
-  const items = (await getAllRetroItems(sessionId)).map((item) => ({
+  const retroItems = await getAllRetroItems(sessionId);
+  const items = retroItems.map((item) => ({
     id: item.id,
     type: item.type,
     description: item.description,
@@ -43,12 +60,13 @@ const AIGrouping = async (
     throw new AIServiceError("Something went wrong! Please try again later.");
   }
 
-  /* TODO: verify if the ids actually exist in the db, if not remove them
-    if the ids in an object are 0 or 1, delete that object itself with its summary */
   const parsedRes = JSON.parse(text);
-  if (Array.isArray(parsedRes) && parsedRes.length >= 1)
-    return parsedRes as AIRetroItemGroupEvent["itemGroups"];
-  else
+  if (Array.isArray(parsedRes) && parsedRes.length >= 1) {
+    const cleanedRes: AIRetroItemGroupEvent["itemGroups"] =
+      cleanUpAIHallucinatedIds(parsedRes, retroItems);
+
+    return cleanedRes;
+  } else
     throw new AIServiceError("Something went wrong! Please try again later.");
 };
 

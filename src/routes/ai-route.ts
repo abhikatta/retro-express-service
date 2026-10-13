@@ -4,7 +4,6 @@ import {
   TooFewItemsError,
 } from "@/errors.js";
 import AIGrouping from "@/services/ai-grouping.js";
-import { getAllRetroItems } from "@/services/retro-items-service.js";
 import { broadCastToConnections } from "@/services/websocket.js";
 import { Request, Response, Router } from "express";
 import z from "zod";
@@ -34,15 +33,15 @@ aiRouter.get(
       res.json({ detail: "Retro items are grouped!" });
     } catch (error) {
       if (error instanceof SessionNotFoundError) {
-        return res.status(404).json({ detail: "Session not found!" });
+        return res.status(404).json({ error: "Session not found!" });
       } else if (error instanceof TooFewItemsError) {
         return res
           .status(400)
-          .json({ detail: "Too few retro items for AI grouping" });
+          .json({ error: "Too few retro items for AI grouping" });
       } else if (error instanceof AIServiceError) {
         return res
           .status(502)
-          .json({ detail: "Something went wrong! Please try again later." });
+          .json({ error: "Something went wrong! Please try again later." });
       } else {
         console.error("error in ai route:", error);
         throw error;
