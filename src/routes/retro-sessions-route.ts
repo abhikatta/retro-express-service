@@ -1,5 +1,4 @@
-import { db } from "@/db/index.js";
-import { retro_sessions, RetroSessionCreate } from "@/db/schema.js";
+import { RetroSessionCreate } from "@/db/schema.js";
 import {
   createRetroSession,
   getRetroSessionItem,

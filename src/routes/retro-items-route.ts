@@ -1,5 +1,4 @@
 import { RetroItem, RetroItemCreate } from "@/db/schema.js";
-import AIGrouping from "@/services/ai-grouping.js";
 import {
   createRetroItem,
   deleteRetroItem,
@@ -22,15 +21,9 @@ retroItemRouter.get(
     const { sessionId } = req.params;
     const session = await getRetroSessionItem(sessionId);
     if (!session)
-      return res.json(400).json({ error: "Session does not exist" });
+      return res.status(404).json({ error: "Session does not exist" });
     const retro_items = await getAllRetroItems(sessionId);
-    res.json(retro_items);
-    void AIGrouping(sessionId).then((itemGroups) =>
-      broadCastToConnections(sessionId, {
-        event: "ai_item_groups_updated",
-        itemGroups,
-      }),
-    );
+    return res.json(retro_items);
   },
 );
 
@@ -66,13 +59,7 @@ retroItemRouter.post(
       retro_item,
     });
 
-    res.json(retro_item);
-    void AIGrouping(sessionId).then((itemGroups) =>
-      broadCastToConnections(sessionId, {
-        event: "ai_item_groups_updated",
-        itemGroups,
-      }),
-    );
+    return res.json(retro_item);
   },
 );
 
@@ -96,14 +83,7 @@ retroItemRouter.get(
 
     if (!retroItem)
       return res.status(404).json({ error: "Item does not exist" });
-    res.json(retroItem);
-
-    void AIGrouping(sessionId).then((itemGroups) =>
-      broadCastToConnections(sessionId, {
-        event: "ai_item_groups_updated",
-        itemGroups,
-      }),
-    );
+    return res.json(retroItem);
   },
 );
 
@@ -117,9 +97,19 @@ retroItemRouter.patch(
     const { description, type } = req.body;
 
     const session = await getRetroSessionItem(sessionId);
-    if (!session) {
+    if (!session)
       return res.status(404).json({ error: "Session does not exist" });
-    }
+
+    if (!typeSchema.safeParse(type).success)
+      return res
+        .status(400)
+        .json({ error: "Item's type is not a valid retro item type" });
+
+    if (!descriptionSchema.safeParse(description).success)
+      return res.status(400).json({
+        error: "Item's description should be in range 5-200 characters",
+      });
+
     const retroItem = await getRetroItem(sessionId, id);
 
     if (!retroItem)
@@ -135,14 +125,7 @@ retroItemRouter.patch(
       retro_item: updatedRetroItem,
     });
 
-    res.json(updatedRetroItem);
-
-    void AIGrouping(sessionId).then((itemGroups) =>
-      broadCastToConnections(sessionId, {
-        event: "ai_item_groups_updated",
-        itemGroups,
-      }),
-    );
+    return res.json(updatedRetroItem);
   },
 );
 
@@ -165,14 +148,7 @@ retroItemRouter.delete(
       retro_item: deletedRetroItem,
     });
 
-    res.json(deletedRetroItem);
-
-    void AIGrouping(sessionId).then((itemGroups) =>
-      broadCastToConnections(sessionId, {
-        event: "ai_item_groups_updated",
-        itemGroups,
-      }),
-    );
+    return res.json(deletedRetroItem);
   },
 );
 
