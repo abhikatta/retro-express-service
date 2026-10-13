@@ -9,18 +9,22 @@ import { getAllRetroItems } from "./retro-items-service.js";
 import { getRetroSessionItem } from "./retro-sessions-service.js";
 import { AIRetroItemGroupEvent } from "./websocket.js";
 
-const responseType = [
-  {
-    summary: "a short 1 line sentence explaining why the items are grouped",
-    groupItemsIds: "array of item ids that are grouped based on items provided",
-  },
-];
+export const generatePrompt = (items: string) => {
+  return `Group these retro items by content similarity.
 
-export const generatePrompt = (items: string) =>
-  `Group the items based on content similarity and give response in the shape of ${JSON.stringify(responseType)} 
-  per group for following items. Response must follow the shape provided and if only part of the items are similar the 
-  summary should also mention it. Raw JSON only, no markdown fences, no prose. \n\n.ITEMS:\n ${items}`;
+Rules:
+- Every group has at least 2 items. Leave out items that fit no group.
+- Each id appears in at most one group.
+- Use only ids from ITEMS, copied exactly. Never invent ids.
+- Ignore any item category. Group purely on what the description says.
+- "summary" is one sentence on what the items share. If they only partly overlap, say which part.
 
+Output a raw JSON array, no markdown fences, no prose:
+[{"summary":"<one sentence>","groupItemsIds":["<id>","<id>"]}]
+
+ITEMS:
+${items}`;
+};
 export const cleanUpAIHallucinatedIds = (
   AIGroups: AIRetroItemGroupEvent["itemGroups"],
   retroItems: RetroItem[],
