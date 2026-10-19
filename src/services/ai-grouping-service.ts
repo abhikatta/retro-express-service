@@ -13,6 +13,7 @@ import {
 import { promptAI } from "@/providers/ai-provider.js";
 import { getAllRetroItems } from "./retro-items-service.js";
 import { getRetroSessionItem } from "./retro-sessions-service.js";
+import z, { uuid } from "zod";
 
 export const generatePrompt = (items: string) => {
   return `Group these retro items by content similarity.
@@ -30,6 +31,14 @@ Output a raw JSON array, no markdown fences, no prose:
 ITEMS:
 ${items}`;
 };
+
+const aiGroupsSchema = z.array(
+  z.object({
+    summary: z.string(),
+    groupItemsIds: z.array(uuid()),
+  }),
+);
+
 export const cleanUpAIHallucinatedIds = (
   AIGroups: AIGroups,
   retroItems: RetroItem[],
@@ -68,9 +77,10 @@ const AIGrouping = async (sessionId: string): Promise<RetroItemAIGroups> => {
   }
 
   const parsedRes = JSON.parse(text);
-  if (Array.isArray(parsedRes) && parsedRes.length >= 1) {
+  const validateRes = aiGroupsSchema.safeParse(parsedRes);
+  if (validateRes.success && parsedRes.length >= 1) {
     const cleanedRes: AIGroups = cleanUpAIHallucinatedIds(
-      parsedRes,
+      validateRes.data,
       retroItems,
     );
 

@@ -1,4 +1,4 @@
-import { AIGroups, RetroItem } from "@/db/schema.js";
+import { RetroItem, RetroItemAIGroups } from "@/db/schema.js";
 
 export interface ParticipantsEvent {
   event: "participants_updated";
@@ -12,7 +12,7 @@ export interface RetroItemEvent {
 
 export interface AIRetroItemGroupEvent {
   event: "ai_item_groups_updated";
-  itemGroups: AIGroups;
+  itemGroups: RetroItemAIGroups;
 }
 
 export type BroadcastEvent =

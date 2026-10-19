@@ -42,7 +42,7 @@ export interface AIGroupItem {
   groupItemsIds: string[];
 }
 export type AIGroups = AIGroupItem[];
-export const ai_groups = pgTable("ai_groupings", {
+export const ai_groups = pgTable("ai_groups", {
   session_id: uuid("session_id")
     .unique()
     .notNull()
@@ -69,4 +69,3 @@ export type RetroSession = typeof retro_sessions.$inferSelect;
 export type RetroSessionCreate = Omit<RetroSession, "id">;
 
 export type RetroItemAIGroups = typeof ai_groups.$inferSelect;
-export type RetroItemAIGroupsCreate = Omit<RetroItemAIGroups, "id">;
