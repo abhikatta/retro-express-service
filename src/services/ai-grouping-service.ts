@@ -1,4 +1,10 @@
-import { RetroItem } from "@/db/schema.js";
+import { db } from "@/db/index.js";
+import {
+  ai_groups,
+  AIGroups,
+  RetroItem,
+  RetroItemAIGroups,
+} from "@/db/schema.js";
 import {
   AIServiceError,
   SessionNotFoundError,
@@ -7,7 +13,6 @@ import {
 import { promptAI } from "@/providers/ai-provider.js";
 import { getAllRetroItems } from "./retro-items-service.js";
 import { getRetroSessionItem } from "./retro-sessions-service.js";
-import { AIRetroItemGroupEvent } from "./websocket.js";
 
 export const generatePrompt = (items: string) => {
   return `Group these retro items by content similarity.
@@ -26,9 +31,9 @@ ITEMS:
 ${items}`;
 };
 export const cleanUpAIHallucinatedIds = (
-  AIGroups: AIRetroItemGroupEvent["itemGroups"],
+  AIGroups: AIGroups,
   retroItems: RetroItem[],
-): AIRetroItemGroupEvent["itemGroups"] => {
+): AIGroups => {
   const retroItemIds = new Set(retroItems.map((item) => item.id));
 
   const res = AIGroups.map((group) => {
@@ -41,9 +46,7 @@ export const cleanUpAIHallucinatedIds = (
   return res.filter((item) => item.groupItemsIds.length > 1);
 };
 
-const AIGrouping = async (
-  sessionId: string,
-): Promise<AIRetroItemGroupEvent["itemGroups"]> => {
+const AIGrouping = async (sessionId: string): Promise<RetroItemAIGroups> => {
   const session = await getRetroSessionItem(sessionId);
   if (!session) {
     throw new SessionNotFoundError("Session not found!");
@@ -66,10 +69,24 @@ const AIGrouping = async (
 
   const parsedRes = JSON.parse(text);
   if (Array.isArray(parsedRes) && parsedRes.length >= 1) {
-    const cleanedRes: AIRetroItemGroupEvent["itemGroups"] =
-      cleanUpAIHallucinatedIds(parsedRes, retroItems);
+    const cleanedRes: AIGroups = cleanUpAIHallucinatedIds(
+      parsedRes,
+      retroItems,
+    );
 
-    return cleanedRes;
+    const [res] = await db
+      .insert(ai_groups)
+      .values({
+        session_id: sessionId,
+        groups: cleanedRes,
+        is_stale: false,
+      })
+      .onConflictDoUpdate({
+        target: ai_groups.session_id,
+        set: { session_id: sessionId, groups: cleanedRes, is_stale: false },
+      })
+      .returning();
+    return res;
   } else
     throw new AIServiceError("Something went wrong! Please try again later.");
 };

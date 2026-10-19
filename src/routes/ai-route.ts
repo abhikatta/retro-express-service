@@ -3,7 +3,7 @@ import {
   SessionNotFoundError,
   TooFewItemsError,
 } from "@/errors.js";
-import AIGrouping from "@/services/ai-grouping.js";
+import AIGrouping from "@/services/ai-grouping-service.js";
 import { broadCastToConnections } from "@/services/websocket.js";
 import { Request, Response, Router } from "express";
 import z from "zod";

@@ -1,9 +1,9 @@
-import { RetroItem } from "@/db/schema.js";
-import { cleanUpAIHallucinatedIds } from "@/services/ai-grouping.js";
-import { AIRetroItemGroupEvent } from "@/services/websocket.js";
+import { AIGroups, RetroItem } from "@/db/schema.js";
+import { cleanUpAIHallucinatedIds } from "@/services/ai-grouping-service.js";
+
 import { expect, test } from "vitest";
 
-const mock: AIRetroItemGroupEvent["itemGroups"] = [
+const mock: AIGroups = [
   {
     summary: "bla bla bla",
     groupItemsIds: ["1", "313", "4"], // 4 does not exist
@@ -22,7 +22,7 @@ const mock: AIRetroItemGroupEvent["itemGroups"] = [
   },
 ];
 
-const mockCleanUpRes: AIRetroItemGroupEvent["itemGroups"] = [
+const mockCleanUpRes: AIGroups = [
   {
     summary: "bla bla bla",
     groupItemsIds: ["1", "313"],

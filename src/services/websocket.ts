@@ -1,28 +1,6 @@
 import { RetroItem, RetroSession } from "@/db/schema.js";
+import { BroadcastEvent } from "@/types/inferred-types.js";
 import WebSocket from "ws";
-
-interface ParticipantsEvent {
-  event: "participants_updated";
-  total_participants: number;
-}
-
-interface RetroItemEvent {
-  event: "retro_item_created" | "retro_item_deleted" | "retro_item_updated";
-  retro_item: RetroItem;
-}
-
-export interface AIRetroItemGroupEvent {
-  event: "ai_item_groups_updated";
-  itemGroups: {
-    summary: string;
-    groupItemsIds: string[];
-  }[];
-}
-
-type BroadcastEvent =
-  | ParticipantsEvent
-  | RetroItemEvent
-  | AIRetroItemGroupEvent;
 
 export const connections = new Map<string, WebSocket[]>();
 export const disconnectConnections = new Set<WebSocket>();
