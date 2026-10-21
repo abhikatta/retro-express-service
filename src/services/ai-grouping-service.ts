@@ -1,19 +1,20 @@
 import { db } from "@/db/index.js";
 import {
-  ai_groups,
-  AIGroups,
-  RetroItem,
-  RetroItemAIGroups,
+    ai_groups,
+    AIGroups,
+    RetroItem,
+    RetroItemAIGroups
 } from "@/db/schema.js";
 import {
-  AIServiceError,
-  SessionNotFoundError,
-  TooFewItemsError,
+    AIServiceError,
+    SessionNotFoundError,
+    TooFewItemsError,
 } from "@/errors.js";
 import { promptAI } from "@/providers/ai-provider.js";
+import { eq } from "drizzle-orm";
+import z, { uuid } from "zod";
 import { getAllRetroItems } from "./retro-items-service.js";
 import { getRetroSessionItem } from "./retro-sessions-service.js";
-import z, { uuid } from "zod";
 
 export const generatePrompt = (items: string) => {
   return `Group these retro items by content similarity.
@@ -55,11 +56,14 @@ export const cleanUpAIHallucinatedIds = (
   return res.filter((item) => item.groupItemsIds.length > 1);
 };
 
-const AIGrouping = async (sessionId: string): Promise<RetroItemAIGroups> => {
+export const createAIGroups = async (
+  sessionId: string,
+): Promise<RetroItemAIGroups> => {
   const session = await getRetroSessionItem(sessionId);
   if (!session) {
     throw new SessionNotFoundError("Session not found!");
   }
+
   const retroItems = await getAllRetroItems(sessionId);
   const items = retroItems.map((item) => ({
     id: item.id,
@@ -83,22 +87,34 @@ const AIGrouping = async (sessionId: string): Promise<RetroItemAIGroups> => {
       validateRes.data,
       retroItems,
     );
-
-    const [res] = await db
-      .insert(ai_groups)
-      .values({
-        session_id: sessionId,
-        groups: cleanedRes,
-        is_stale: false,
-      })
-      .onConflictDoUpdate({
-        target: ai_groups.session_id,
-        set: { session_id: sessionId, groups: cleanedRes, is_stale: false },
-      })
-      .returning();
-    return res;
+    if (cleanedRes.length >= 1) {
+      const [res] = await db
+        .insert(ai_groups)
+        .values({
+          session_id: sessionId,
+          groups: cleanedRes,
+          is_stale: false,
+        })
+        .onConflictDoUpdate({
+          target: ai_groups.session_id,
+          set: { session_id: sessionId, groups: cleanedRes, is_stale: false },
+        })
+        .returning();
+      return res;
+    } else
+      throw new AIServiceError("Something went wrong! Please try again later.");
   } else
     throw new AIServiceError("Something went wrong! Please try again later.");
 };
 
-export default AIGrouping;
+export const getAIGroups = async (sessionId: string) => {
+  const session = await getRetroSessionItem(sessionId);
+
+  if (!session) throw new SessionNotFoundError("Session not found!");
+
+  const [res] = await db
+    .select()
+    .from(ai_groups)
+    .where(eq(ai_groups.session_id, sessionId));
+  return { is_stale: res.is_stale ?? false, groups: res.groups ?? [] };
+};

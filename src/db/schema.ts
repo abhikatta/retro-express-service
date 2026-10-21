@@ -51,7 +51,7 @@ export const ai_groups = pgTable("ai_groups", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  groups: jsonb("groups").$type<AIGroups>().notNull(),
+  groups: jsonb("groups").$type<AIGroups>().notNull().default([]),
   is_stale: boolean("is_stale").default(false).notNull(),
 });
 

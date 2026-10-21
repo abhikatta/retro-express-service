@@ -12,7 +12,7 @@ export interface RetroItemEvent {
 
 export interface AIRetroItemGroupEvent {
   event: "ai_item_groups_updated";
-  itemGroups: RetroItemAIGroups;
+  itemGroups: Omit<RetroItemAIGroups, "session_id">;
 }
 
 export type BroadcastEvent =
