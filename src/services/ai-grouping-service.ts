@@ -1,14 +1,14 @@
 import { db } from "@/db/index.js";
 import {
-    ai_groups,
-    AIGroups,
-    RetroItem,
-    RetroItemAIGroups
+  ai_groups,
+  AIGroups,
+  RetroItem,
+  RetroItemAIGroups,
 } from "@/db/schema.js";
 import {
-    AIServiceError,
-    SessionNotFoundError,
-    TooFewItemsError,
+  AIServiceError,
+  SessionNotFoundError,
+  TooFewItemsError,
 } from "@/errors.js";
 import { promptAI } from "@/providers/ai-provider.js";
 import { eq } from "drizzle-orm";
@@ -116,5 +116,8 @@ export const getAIGroups = async (sessionId: string) => {
     .select()
     .from(ai_groups)
     .where(eq(ai_groups.session_id, sessionId));
-  return { is_stale: res.is_stale ?? false, groups: res.groups ?? [] };
+
+  return res
+    ? { is_stale: res.is_stale, groups: res.groups }
+    : { is_stale: false, groups: [] };
 };
